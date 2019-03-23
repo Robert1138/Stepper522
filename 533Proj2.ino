@@ -1,29 +1,26 @@
 #include <Stepper.h>
 #include <stdbool.h>
+
 const int buttonPin1 = 2;
 const int buttonPin2 = 53;
 const int stepsPerRevol = 64;
 bool sSet = false;
 bool motorSet = false;
-
-
-
-
 int speedArr[] = {30, 100, 200, 330};
 int speedIndex = 0;
 
 
- int currVelocity = 0;
-  int motorSpeed = 0;
-  //state currState;
+int currVelocity = 0;
+int motorSpeed = 0;
 
-  // button states for input1
-  int buttonState = 0;
-  int prevButtonState = 0;
 
-  // button states for input2
-  int buttonState2 = 0;
-  int prevButtonState2 = 0;
+// button states for input1
+int buttonState = 0;
+int prevButtonState = 0;
+
+// button states for input2
+int buttonState2 = 0;
+int prevButtonState2 = 0;
 
 
 
@@ -36,7 +33,7 @@ typedef enum fsaState {
   IN_STOP,
 } state;
 
-  state currState;
+state currState;
 
 
 void setup() {
@@ -71,136 +68,128 @@ void initExecute() {
 
 
 
-        motorSet = true; 
-        Serial.print("HERE\n");
+  motorSet = true;
+  Serial.print("HERE\n");
 
 
-        buttonState = digitalRead(buttonPin1);
+  buttonState = digitalRead(buttonPin1);
 
-        if (buttonState != prevButtonState) {
-          Serial.print("button was hit");
-          currState = IN_RUN;
+  if (buttonState != prevButtonState) {
+    Serial.print("button was hit");
+    currState = IN_RUN;
 
-          if (sSet) {
-            int currVelocityIndex = getCurrVelocity(currVelocity);
-            if (  currVelocityIndex < 3 ) {
-              myStepper.setSpeed(speedArr[currVelocityIndex + 1]);
-              myStepper.step(1);
-            } else {
-              // nothing max speed reached
-            }
-          } else {
+    if (sSet) {
+      int currVelocityIndex = getCurrVelocity(currVelocity);
+      if (  currVelocityIndex < 3 ) {
+        myStepper.setSpeed(speedArr[currVelocityIndex + 1]);
+        myStepper.step(1);
+      } else {
+        // nothing max speed reached
+      }
+    } else {
 
-            speedIndex = 1;
-            Serial.print("speed set to 1");
-          }
-        }
-        prevButtonState = buttonState;
+      speedIndex = 1;
+      Serial.print("speed set to 1");
+    }
+  }
+  prevButtonState = buttonState;
 
- Serial.print("checking the second button\n");
-        buttonState2 = digitalRead(buttonPin2);
-        if (buttonState2 != prevButtonState2) {
-          // if speed isnt set
-          if (buttonState2 == HIGH) {
-            // save cutr velocity and go to next state
-            currVelocity = speedArr[speedIndex];
-            currState = IN_STOP;
+  Serial.print("checking the second button\n");
+  buttonState2 = digitalRead(buttonPin2);
+  if (buttonState2 != prevButtonState2) {
+    // if speed isnt set
+    if (buttonState2 == HIGH) {
+      // save cutr velocity and go to next state
+      currVelocity = speedArr[speedIndex];
+      currState = IN_STOP;
 
-          }
-        } else {
+    }
+  } else {
 
-        }
-        prevButtonState2 = buttonState2;
-
-
-
+  }
+  prevButtonState2 = buttonState2;
 
 
 
 
-  
+
+
+
+
 }
 
 void stateInRun() {
-  
- buttonState = digitalRead(buttonPin1);
-        if (buttonState != prevButtonState) {
-          // if speed isnt set
-          if (buttonState == HIGH) {
-            Serial.print("Button pressed in IN_RUN !!!!!!!!!!!!!!!!!!!!!!\n");
-            inrunExecute(currVelocity);
-          }
-        } else {
-          myStepper.setSpeed(speedArr[speedIndex]);
-          myStepper.step(1);
-        }
-        prevButtonState = buttonState;
+
+  buttonState = digitalRead(buttonPin1);
+  if (buttonState != prevButtonState) {
+    // if speed isnt set
+    if (buttonState == HIGH) {
+      Serial.print("Button pressed in IN_RUN !!!!!!!!!!!!!!!!!!!!!!\n");
+      inrunExecute(currVelocity);
+    }
+  } else {
+    myStepper.setSpeed(speedArr[speedIndex]);
+    myStepper.step(1);
+  }
+  prevButtonState = buttonState;
 
 
-        buttonState2 = digitalRead(buttonPin2);
-        if (buttonState2 != prevButtonState2) {
-          // if speed isnt set
-          if (buttonState2 == HIGH) {
-            // save cutr velocity and go to next state
-            currVelocity = speedArr[speedIndex];
-            motorSet = false;
-            sSet = true;
-            currState = IN_STOP;
+  buttonState2 = digitalRead(buttonPin2);
+  if (buttonState2 != prevButtonState2) {
+    // if speed isnt set
+    if (buttonState2 == HIGH) {
+      // save cutr velocity and go to next state
+      currVelocity = speedArr[speedIndex];
+      motorSet = false;
+      sSet = true;
+      currState = IN_STOP;
 
-          }
-        } else {
+    }
+  } else {
 
-        }
-        prevButtonState2 = buttonState2;
+  }
+  prevButtonState2 = buttonState2;
+}
+
+
+void stateInStop() {
+
+
+  Serial.print("you are now in STOP");
+
+  if (motorSet == false) {
+
+    buttonState2 = digitalRead(buttonPin2);
+    if (buttonState2 != prevButtonState2) {
+      // if speed isnt set
+      if (buttonState2 == HIGH) {
+        // save cutr velocity and go to next state
+        currVelocity = 0;
+        sSet = false;
+        currState = INIT;
+
+      }
+    } else {
+
+    }
+    prevButtonState2 = buttonState2;
+
   }
 
 
-  void stateInStop() {
-    
-    
-     Serial.print("you are now in STOP");
+  buttonState = digitalRead(buttonPin1);
+  if (buttonState != prevButtonState) {
+    // if speed isnt set
+    if (buttonState == HIGH) {
+      // save cutr velocity and go to next state
+      currState = INIT;
 
-            if(motorSet == false) {
-
-         buttonState2 = digitalRead(buttonPin2);
-        if (buttonState2 != prevButtonState2) {
-          // if speed isnt set
-          if (buttonState2 == HIGH) {
-            // save cutr velocity and go to next state
-            currVelocity = 0;
-            sSet = false;
-            currState = INIT;
-
-          }
-        } else {
-
-        }
-        prevButtonState2 = buttonState2;
-              
-            }
-
-
-        buttonState = digitalRead(buttonPin1);
-        if (buttonState != prevButtonState) {
-          // if speed isnt set
-          if (buttonState == HIGH) {
-            // save cutr velocity and go to next state
-            currState = INIT;
-
-          }
-        } else {
-
-        }
-        prevButtonState = buttonState;
-
-
-
-
-    
-    
-    
-    
     }
+  } else {
+
+  }
+  prevButtonState = buttonState;
+}
 
 
 
@@ -217,8 +206,6 @@ void inrunExecute(int cVelocity) {
       speedIndex++;
       Serial.print("\n");
       Serial.print(speedIndex);
-      //delay the button presses
-      //delay(1000);
     }
   } else {
     int currVelocityIndex = getCurrVelocity(cVelocity);
@@ -230,14 +217,6 @@ void inrunExecute(int cVelocity) {
     }
 
   }
-
-
-
-
-
-
-
-  
 }
 
 
@@ -263,82 +242,22 @@ void loop() {
 
  
 
-
-
-
-  bool speedSet = false;
-
   currState = INIT;
   while (1) {
 
     switch (currState) {
 
       case INIT: Serial.print("in init\n");
-                 initExecute();
-                 break;
-                 
+        initExecute();
+        break;
+
       case IN_RUN: //Serial.print("in IN_RUN\n");
-
-                   stateInRun();
-
- 
+        stateInRun();
         break;
       case IN_STOP: Serial.print("in IN_STOP\n");
-
-                    stateInStop();
-
-/*
-        Serial.print("you are now in STOP");
-
-            if(motorSet == false) {
-
-         buttonState2 = digitalRead(buttonPin2);
-        if (buttonState2 != prevButtonState2) {
-          // if speed isnt set
-          if (buttonState2 == HIGH) {
-            // save cutr velocity and go to next state
-            currVelocity = 0;
-            sSet = false;
-            currState = INIT;
-
-          }
-        } else {
-
-        }
-        prevButtonState2 = buttonState2;
-              
-            }
-
-
-        buttonState = digitalRead(buttonPin1);
-        if (buttonState != prevButtonState) {
-          // if speed isnt set
-          if (buttonState == HIGH) {
-            // save cutr velocity and go to next state
-            currState = INIT;
-
-          }
-        } else {
-
-        }
-        prevButtonState = buttonState;
-
-
-
-
-            */
-
-
-
+        stateInStop();
         break;
 
     }
-
-
-
   }
-
-
-
-
 }
